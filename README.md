@@ -44,7 +44,7 @@ It pulls live information from the game’s logs, displays player and session de
 ### **Quick Launch Support**  
 - [NOT RECCOMENDED] Optionally launch PEAK directly via Steam from the script.
 - **DISCLAIMER:** it will always run in Vulkan due to the default PEAK dll file being configured as such. To change this you can go to https://github.com/CyR1en/UnityPlayerPatcher.
-- Run it from Steam in DX12 first to ensure the RPC works correctly.
+- **Run it from Steam in DX12 first to ensure the RPC works correctly.**
 - Supports **log refresh detection** to ensure accurate data after launching.
 
 ---
@@ -73,5 +73,5 @@ It pulls live information from the game’s logs, displays player and session de
 ## 📦 Installation  
 
 1. Download the latest release from the **[Releases](https://github.com/VickramC07/PEAK-Discord-RPC/releases)** page.  
-2. Run the executable (or the Python script) while PEAK is running.  
+2. Run the executable (or the Python script) while PEAK is running(preferably in DX12).  
 3. Enjoy your upgraded Discord Rich Presence!  
