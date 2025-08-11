@@ -73,5 +73,5 @@ It pulls live information from the game’s logs, displays player and session de
 ## 📦 Installation  
 
 1. Download the latest release from the **[Releases](https://github.com/VickramC07/PEAK-Discord-RPC/releases)** page.  
-2. Run the executable (or the Python script) while PEAK is running(preferably in DX12).  
+2. Run the executable while PEAK is running(preferably in DX12).  
 3. Enjoy your upgraded Discord Rich Presence!  
