@@ -19,8 +19,8 @@ import requests
 import glob
 import traceback
 
-# Intégration directe de la variable CLIENT_ID (remplacez la valeur par votre vrai CLIENT_ID)
-CLIENT_ID = "1404610223603191849"  # <-- Remplacez par votre vrai Client ID Discord
+# Intégration directe de la variable CLIENT_ID
+CLIENT_ID = "1404610223603191849"
 
 class TeeOutput:
     def __init__(self, *streams):
@@ -437,16 +437,18 @@ def start_rpc():
         playing = "On a Solo Expedition"
         if max_player_count > 1:
             playing = "In a Party ("+str(max_player_count)+" of 4)"
-        RPC.update(
+        update_kwargs = dict(
             details=f"In the {state}",
             state=playing,
             start=start_time,
             large_image=image_key,
             large_text=state,
-            small_image=img_url,
-            small_text=player_name,
-            buttons=buttons if buttons else None  # Only add buttons if list is not empty
+            buttons=buttons if buttons else None
         )
+        if img_url:
+            update_kwargs["small_image"] = img_url
+            update_kwargs["small_text"] = player_name
+        RPC.update(**update_kwargs)
 
     # Monitor the log
     launch_peak_game()
