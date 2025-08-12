@@ -113,36 +113,10 @@ class ShutdownDetected(Exception):
     """Raised when 'ShutdownInProgress' is found in the log."""
     pass
 
-def get_config_path():
-    if getattr(sys, 'frozen', False):
-        # Running in a bundle (PyInstaller)
-        base_path = os.path.dirname(sys.executable)
-    else:
-        # Running as normal script
-        base_path = os.path.dirname(__file__)
-    return os.path.join(base_path, "config.json")
 
-config_path = get_config_path()
-
-# Load existing config or create default
-if os.path.exists(config_path):
-    with open(config_path, "r") as f:
-        config = json.load(f)
-else:
-    config = {
-        "show_social_button": False,
-        "show_github_button": False,
-        "custom_social_name": "My Social",
-        "custom_social_url": "https://example.com"
-    }
 
 def save_config():
-    config["show_social_button"] = social_var.get()
-    config["show_github_button"] = github_var.get()
-    config["custom_social_name"] = social_name_var.get()
-    config["custom_social_url"] = social_url_var.get()
-    with open(config_path, "w") as f:
-        json.dump(config, f, indent=2)
+    pass
 
 def start_rpc():
     client_id = os.getenv("CLIENT_ID")
@@ -172,36 +146,17 @@ def start_rpc():
         "outfit": 0,
         "hat": 0
     }
-    def get_config_path():
-        if getattr(sys, 'frozen', False):
-            # If running in a PyInstaller bundle
-            base_path = os.path.dirname(sys.executable)
-        else:
-            # Running as script
-            base_path = os.path.dirname(__file__)
-        return os.path.join(base_path, "config.json")
-
-    config_path = get_config_path()
-    try:
-        with open(config_path, "r") as f:
-            config = json.load(f)
-            show_social_button = config.get("show_social_button", False)
-            show_github_button = config.get("show_github_button", False)
-            custom_social_name = config.get("custom_social_name", "My Social")
-            custom_social_url = config.get("custom_social_url", "https://example.com")
-            print(f"[CONFIG] Social Button: {show_social_button} ({custom_social_name}), GitHub Button: {show_github_button}")
-    except Exception as e:
-        print(f"[ERROR] Could not read config.json: {e}")
-        show_social_button = False
-        show_github_button = False
-
-    buttons = []
-
-    if show_social_button:
-        buttons.append({"label": custom_social_name, "url": custom_social_url})
-
-    if show_github_button:
-        buttons.append({"label": "Creator GitHub", "url": "https://github.com/VickramC07"})
+    # Deux boutons fixes pour la Rich Presence
+    buttons = [
+        {
+            "label": "Buy the game here",
+            "url": "https://store.steampowered.com/app/3527290/PEAK/"
+        },
+        {
+            "label": "Project GitHub",
+            "url": "https://github.com/h3pha/PEAK-Discord-RPC"
+        }
+    ]
 
     def resource_path(relative_path):
         """ Get absolute path to resource, works for dev and PyInstaller """
@@ -220,6 +175,9 @@ def start_rpc():
     except Exception as e:
         print(f"[ERROR] Could not connect to Discord RPC: {e}")
         exit(1)
+
+    # Rendre l'utilisation du webhook Discord optionnelle
+    webhook_url = os.getenv("WEBHOOK_URL")
 
     def launch_peak_game():
         try:
@@ -277,9 +235,9 @@ def start_rpc():
                                     char_attrs["hat"] = int(line.split(":")[-1])
                             if player_name == "Unknown":
                                 if "Setting Player Data for:" in line:
-                                    match = re.search(r"Setting Player Data for:\s*(\w+)", line)
+                                    match = re.search(r"Setting Player Data for:\s*(.+)", line)
                                     if match:
-                                        player_name = match.group(1)
+                                        player_name = match.group(1).strip()
                                         print(f"[LOG] Detected player name: {player_name}")
                             if "Initialized with name:" in line:
                                 match = re.search(r"Initialized with name:\s*(\w+)", line)
@@ -515,9 +473,9 @@ def start_rpc():
                     char_attrs["hat"] = int(line.split(":")[-1])
             if player_name == "Unknown":
                 if "Setting Player Data for:" in line:
-                    match = re.search(r"Setting Player Data for:\s*(\w+)", line)
+                    match = re.search(r"Setting Player Data for:\s*(.+)", line)
                     if match:
-                        player_name = match.group(1)
+                        player_name = match.group(1).strip()
                         print(f"[LOG] Detected player name: {player_name}")
             if "Initialized with name:" in line:
                 match = re.search(r"Initialized with name:\s*(\w+)", line)
@@ -560,7 +518,10 @@ def start_rpc():
                     char_attrs["outfit"],
                     char_attrs["hat"]
                 )
-                character_image_url = upload_to_discord_webhook(character_image_path, os.getenv("WEBHOOK_URL"), player_name)
+                if webhook_url and webhook_url != "None":
+                    character_image_url = upload_to_discord_webhook(character_image_path, webhook_url, player_name)
+                else:
+                    character_image_url = None
                 character_uploaded = True
                 img_url = upload_to_catbox(character_image_path)
             statekey = get_state_from_line(line,statekey)
@@ -571,55 +532,32 @@ def start_rpc():
     except ShutdownDetected:
         print("[LOG] Shutdown detected. Stopping presence updates.")
 
-def launch_script():
+def show_log_window():
+    log_content = log_buffer.getvalue()
+    log_win = tk.Tk()
+    log_win.title("PEAK Discord RPC Logs")
+    log_win.geometry("700x500")
+    text = tk.Text(log_win, wrap="word")
+    text.insert("1.0", log_content)
+    text.config(state="disabled")
+    text.pack(expand=True, fill="both")
+    tk.Button(log_win, text="Fermer", command=log_win.destroy).pack(pady=10)
+    log_win.mainloop()
+
+def launch_and_show_log():
     save_config()
     window.destroy()
-    start_rpc()
+    try:
+        start_rpc()
+    finally:
+        show_log_window()
 
-def open_github():
-    webbrowser.open("https://github.com/VickramC07")
-
-# --- GUI Window ---
 window = tk.Tk()
 window.title("PEAK Discord RPC Launcher")
-window.geometry("400x400")
+window.geometry("400x200")
 window.resizable(False, False)
-
 tk.Label(window, text="PEAK Discord RPC", font=("Helvetica", 18)).pack(pady=10)
-
-# Variables bound to checkboxes and fields
-social_var = tk.BooleanVar(value=config.get("show_social_button", False))
-github_var = tk.BooleanVar(value=config.get("show_github_button", False))
-social_name_var = tk.StringVar(value=config.get("custom_social_name", "My Social"))
-social_url_var = tk.StringVar(value=config.get("custom_social_url", "https://example.com"))
-
-# Dynamic frame for social input
-social_frame = tk.Frame(window)
-
-def toggle_social():
-    if social_var.get():
-        social_frame.pack(pady=5)
-    else:
-        social_frame.pack_forget()
-
-# Checkboxes
-tk.Checkbutton(window, text="Enable Social Button", variable=social_var, command=toggle_social).pack()
-tk.Checkbutton(window, text="enable this if you don't hate the creator", variable=github_var).pack()
-
-# Social button input fields inside the toggleable frame
-tk.Label(social_frame, text="Social Button Label:").pack()
-tk.Entry(social_frame, textvariable=social_name_var, width=40).pack()
-
-tk.Label(social_frame, text="Social Button URL:").pack()
-tk.Entry(social_frame, textvariable=social_url_var, width=40).pack()
-
-# Show social input frame on launch if enabled
-if social_var.get():
-    social_frame.pack(pady=5)
-
-# Start button
-tk.Button(window, text="Start", font=("Helvetica", 14), width=20, command=launch_script).pack(pady=20)
-
+tk.Button(window, text="Start", font=("Helvetica", 14), width=20, command=launch_and_show_log).pack(pady=40)
 try:
     window.mainloop()
 except Exception:
