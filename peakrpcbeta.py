@@ -18,9 +18,9 @@ import re
 import requests
 import glob
 import traceback
-from dotenv import load_dotenv
 
-load_dotenv()
+# Intégration directe de la variable CLIENT_ID (remplacez la valeur par votre vrai CLIENT_ID)
+CLIENT_ID = "1404610223603191849"  # <-- Remplacez par votre vrai Client ID Discord
 
 class TeeOutput:
     def __init__(self, *streams):
@@ -119,7 +119,7 @@ def save_config():
     pass
 
 def start_rpc():
-    client_id = os.getenv("CLIENT_ID")
+    client_id = CLIENT_ID
     print(client_id)
     log_candidates = glob.glob(os.path.expandvars(r"%USERPROFILE%\AppData\LocalLow\LandCrab\PEAK\Player.log"))
 
@@ -177,7 +177,7 @@ def start_rpc():
         exit(1)
 
     # Rendre l'utilisation du webhook Discord optionnelle
-    webhook_url = os.getenv("WEBHOOK_URL")
+    webhook_url = None  # Plus de .env, à personnaliser ici si besoin
 
     def launch_peak_game():
         try:
