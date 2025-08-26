@@ -1,4 +1,4 @@
-# **PEAK-Discord-RPC**  
+# DO NOT USE, DEPRECATED UNTILL FURTHER NOTICE **PEAK-Discord-RPC**  
 *Bring your PEAK gameplay to life on Discord with real-time, detailed activity status.*
 
 ## Overview  
